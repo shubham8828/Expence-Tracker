@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+    <h1>Money Tracker Web App</h1>
+    <div class="input-section">
+        <label for="category-select">Category:</label>
+        <select id="category-select">
+            <option value="College Fee">College Fee</option>
+            <option value="Rent">Rent</option>
+            <option value="Transport">Transport</option>
+            <option value="Food">Food</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Cool Drinks">Cool Drinks</option>
+        </select>
+
+        <label for="amount-input">Amount:</label>
+        <input type="number" id="amount-input">
+
+        <label for="date-input">Date:</label>
+        <input type="date" id="date-input">
+
+        <button id="add-btn">Add</button>
+    </div>
+
+    <div class="expenses-list">
+        <h2>Expenses List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="expense-table-body"></tbody>
+            <tfoot>
+                <td>Total:</td>
+                <td id="total-amount">0</td>
+                <td></td>
+                <td></td>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Firebase configuration (Replace with your actual configuration)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6MNm01fga0DD8kZy8NYet6ZsFZRVHI3g",
+            authDomain: "money-tracker-c21a4.firebaseapp.com",
+            databaseURL: "https://money-tracker-c21a4-default-rtdb.firebaseio.com",
+            projectId: "money-tracker-c21a4",
+            storageBucket: "money-tracker-c21a4.appspot.com",
+            messagingSenderId: "1053291799105",
+            appId: "1:1053291799105:web:4e0b0f47ffbb4137591cc0"
+};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let expenses = [];
+        let totalAmount = 0;
+
+        const categorySelect = document.getElementById('category-select');
+        const amountInput = document.getElementById('amount-input');
+        const dateInput = document.getElementById('date-input');
+        const addBtn = document.getElementById('add-btn');
+        const expenseTableBody = document.getElementById('expense-table-body');
+        const totalAmountCell = document.getElementById('total-amount');
+
+        // Function to render the expenses in the table
+        function renderExpenseTable() {
+            expenseTableBody.innerHTML = ''; // Clear the table before rendering
+            totalAmount = 0; // Reset the total amount
+
+            expenses.forEach((expense, index) => {
+                const newRow = expenseTableBody.insertRow();
+
+                const categoryCell = newRow.insertCell();
+                const amountCell = newRow.insertCell();
+                const dateCell = newRow.insertCell();
+                const deleteCell = newRow.insertCell();
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+
+                deleteBtn.addEventListener('click', () => {
+                    // Remove the expense from the database
+                    const dlt=confirm("Are you sure ?")
+                    if(dlt){
+                    const expenseRef = db.ref('expenses/' + expense.id);
+                    expenseRef.remove();
+                    window.location.reload()
+                    }
+                    // Update the UI after deletion
+                    expenses.splice(index, 1);
+                    renderExpenseTable();
+                });
+
+                categoryCell.textContent = expense.category;
+                amountCell.textContent = expense.amount;
+                dateCell.textContent = expense.date;
+                deleteCell.appendChild(deleteBtn);
+
+                totalAmount += parseFloat(expense.amount);
+            });
+
+            totalAmountCell.textContent = totalAmount;
+        }
+
+        // Add new expense
+        addBtn.addEventListener('click', () => {
+            const category = categorySelect.value;
+            const amount = Number(amountInput.value);
+            const date = dateInput.value;
+
+            if (category === '' || isNaN(amount) || amount <= 0 || date === '') {
+                alert('Please fill out all fields');
+                return;
+            }
+
+            // Create a new expense reference in the Realtime Database
+            const newExpenseRef = db.ref('expenses').push();
+
+            // Save the new expense to Firebase
+            newExpenseRef.set({
+                id: newExpenseRef.key,
+                category,
+                amount,
+                date
+            });
+
+            // Clear input fields
+            categorySelect.value = '';
+            amountInput.value = '';
+            dateInput.value = '';
+            alert("New Expence is Added")
+        });
+
+        // Retrieve and display expenses from Firebase Realtime Database
+        db.ref('expenses').on('value', (snapshot) => {
+            expenses = [];
+            snapshot.forEach((childSnapshot) => {
+                expenses.push(childSnapshot.val());
+            });
+            renderExpenseTable();
+        });
+    </script>
+</body>
+</html>
