@@ -89,11 +89,5 @@ onValue(ref(db, 'expenses'), (snapshot) => {
 
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA6MNm01fga0DD8kZy8NYet6ZsFZRVHI3g",
-    authDomain: "money-tracker-c21a4.firebaseapp.com",
-    databaseURL: "https://money-tracker-c21a4-default-rtdb.firebaseio.com",
-    projectId: "money-tracker-c21a4",
-    storageBucket: "money-tracker-c21a4.appspot.com",
-    messagingSenderId: "1053291799105",
-    appId: "1:1053291799105:web:4e0b0f47ffbb4137591cc0"
+    
 };
